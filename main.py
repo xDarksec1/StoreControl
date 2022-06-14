@@ -14,13 +14,19 @@ class TelaMain(QMainWindow, Ui_MainWindow, QDialog):
         self.inputSearch.returnPressed.connect(lambda: self.show_all(search=True))
         self.btnRefresh.clicked.connect(self.show_all)
         self.setWindowTitle("MissBela Store")
+        self.setFixedSize(self.size())
 
         # tela vendas
         self.btnSearchVendas.clicked.connect(self.show_vendas)
         self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tableView.doubleClicked.connect(self.exec_vendas)
         self.btnExecVendas.clicked.connect(self.exec_vendas)
         self.inputQtde.returnPressed.connect(self.exec_vendas)
+        self.inputValor.returnPressed.connect(self.exec_vendas)
         self.btnRefreshVendas.clicked.connect(self.refresh_vendas)
+
+        # returnPresseds
+        self.searchVendas.returnPressed.connect(lambda: self.show_vendas())
 
         # tela addprod
         self.tela_addprod = TelaAddProd()
@@ -38,6 +44,7 @@ class TelaMain(QMainWindow, Ui_MainWindow, QDialog):
 
         self.show_all()
         self.show_vendas()
+        self.refresh_vendas()
         self.check_hwid()
 
     def del_selected_row(self):
@@ -261,12 +268,13 @@ class TelaMain(QMainWindow, Ui_MainWindow, QDialog):
                         Msg().send_msg(
                             "ERRO", "Valor informado errado", QMessageBox.Warning
                         )
+                        return
                 message = QMessageBox()
                 message.setWindowIcon(QIcon("iconmain.ico"))
                 reply = message.question(
                     message,
                     f"Confirmação",
-                    f"Produto: {nome}\nQuantidade: {qtde_vendida}\n\tTotal: R${total}\n\tTroco: R${exchange}",
+                    f"Produto: {nome}\n\tQuantidade: {qtde_vendida}\n\tTotal: R${total}\n\tTroco: R${exchange}",
                     QMessageBox.Yes | QMessageBox.No,
                     QMessageBox.Yes,
                 )
@@ -282,6 +290,7 @@ class TelaMain(QMainWindow, Ui_MainWindow, QDialog):
                     log = Logs()
                     log.write_log(nome, qtde_vendida, total)
             finally:
+                self.refresh_vendas()
                 self.show_vendas()
                 self.show_all()
 
